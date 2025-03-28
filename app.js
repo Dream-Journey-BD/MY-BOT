@@ -2,7 +2,8 @@ const fs = require("fs");
 const path = require("path");
 const axios = require('axios');
 
-const { checkInOptions, setCodeOptions, pointsOptions, getCodeOptions, getTeaFi } = require("./teafi")
+const { checkInOptions, getTeaFi } = require("./web/teafi");
+const { bot } = require("./tg/tg-bot");
 
 
 // Function to simulate a delay
@@ -67,7 +68,7 @@ async function extractWallet(jsonArray) {
 }
 
 function callTeaFi() {
-    readJsonFile("wallet.json")
+    readJsonFile("evm-wallet.json")
         .then((data) => {
             extractWallet(data);
         })
