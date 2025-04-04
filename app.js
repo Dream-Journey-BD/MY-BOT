@@ -3,6 +3,7 @@ const path = require("path");
 const axios = require('axios');
 
 const { checkInOptions, getTeaFi } = require("./web/teafi");
+const { callStork } = require("./web/stork-oracle");
 const { bot } = require("./tg/tg-bot");
 
 
@@ -77,6 +78,6 @@ function callTeaFi() {
         });
 }
 
-
+callStork(bot, axios);
 //=======Start After 24 Hours========
 setInterval(callTeaFi, 86400000);

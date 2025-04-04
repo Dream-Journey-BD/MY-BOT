@@ -1,7 +1,4 @@
-const developers = [123456789, 987654321]; // Bot Developer IDs here
 const priveteChatAlert = "⚠️ This command is not available in private chats..";
-const notDevAlert = "⚠️ This command is only available to the bot developers..";
-
 
 // Check if the chat is a private chat
 function isPrivateChat(chatId) {
@@ -48,5 +45,4 @@ module.exports = {
     isValidURL,
     getMyUrl,
     priveteChatAlert,
-    notDevAlert
 }
