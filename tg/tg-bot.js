@@ -36,17 +36,6 @@ bot.on("message", async (msg, metadata) => {
     const userMessage = msg.text ? msg.text.trim() : "";
     const chatType = msg.chat.type;
 
-    if (msg.media_group_id) {
-        console.log('This message is part of a media group:', msg.media_group_id);
-    } else {
-        console.log('This is a single media message:');
-    }
-
-
-    if (chatType == "private") {
-        //getChannelMessageId(msg, bot, metadata.type);
-    }
-
     if (!userMessage) return;
     // Call Neccarey Methode
     if (userMessage.startsWith("/")) {
