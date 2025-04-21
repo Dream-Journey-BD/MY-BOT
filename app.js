@@ -2,23 +2,13 @@ const fs = require("fs");
 const path = require("path");
 const axios = require('axios');
 
-const { checkInOptions, getTeaFi } = require("./web/teafi");
+const { checkInOptions, getTeaFi, getResult, emptyResult } = require("./web/teafi");
+const { waitMinutes } = require("./web/common")
+const { devID } = require("./tg/developer-utils")
 const { callStork } = require("./web/stork-oracle");
 const { bot } = require("./tg/tg-bot");
 
 
-// Function to simulate a delay
-function waitMinutes(minS, minE) {
-    const ms = Math.floor(Math.random() * (minE - minS + 1) + minS) * 60 * 1000;
-    console.log(`Waiting for ${ms / (60 * 1000)} minutes`);
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
- * Reads and parses any JSON file.
- * @param {string} filePath - Path to the JSON file.
- * @returns {Promise<Object>} - Parsed JSON data.
- */
 function readJsonFile(filePath) {
     return new Promise((resolve, reject) => {
         const absolutePath = path.resolve(filePath); // Convert to absolute path
@@ -39,11 +29,7 @@ function readJsonFile(filePath) {
     });
 }
 
-/**
- * Extracts wallet data by label from a given JSON file.
- * @param {Array} jsonArray - Array of wallet objects to process.
- * @returns {Promise<void>} - Void, as we are performing side effects (API calls).
- */
+
 async function extractWallet(jsonArray) {
 
     // wait 1 - 8 Minutes Than Go Next...
@@ -59,8 +45,12 @@ async function extractWallet(jsonArray) {
             await getTeaFi(axios, checkInOptions(address), address);
         }
 
+        const message = `<b>TeaFi Execution Result:</b>\n\n${getResult()}`
+        bot.sendMessage(devID[0], message, { parse_mode: 'HTML' });
+
         const currentDate = new Date();
         console.log(`TeaFi Execution complete\nToday's Date: `, currentDate);
+        emptyResult();
 
     } catch (error) {
         console.error(error);

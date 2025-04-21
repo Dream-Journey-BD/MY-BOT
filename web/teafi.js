@@ -1,3 +1,7 @@
+const { userAgent } = require("../tg/developer-utils")
+
+let success = 0;
+let fail = 0;
 
 const checkInOptions = (address) => ({
     method: 'POST',
@@ -7,7 +11,7 @@ const checkInOptions = (address) => ({
         accept: 'application/json, text/plain, */*',
         origin: 'https://app.tea-fi.com',
         referer: 'https://app.tea-fi.com/',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36'
+        'user-agent': userAgent
     }
 });
 
@@ -19,7 +23,7 @@ const setCodeOptions = (address) => ({
         'content-type': 'application/json',
         origin: 'https://app.tea-fi.com',
         referer: 'https://app.tea-fi.com/',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36'
+        'user-agent': userAgent
     },
     data: { address: address, code: 'hdtom4' }
 });
@@ -31,7 +35,7 @@ const pointsOptions = (address) => ({
         accept: 'application/json, text/plain, */*',
         origin: 'https://app.tea-fi.com',
         referer: 'https://app.tea-fi.com/',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36'
+        'user-agent': userAgent
     }
 });
 
@@ -43,7 +47,7 @@ const getCodeOptions = (address) => ({
         accept: 'application/json, text/plain, */*',
         origin: 'https://app.tea-fi.com',
         referer: 'https://app.tea-fi.com/',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36'
+        'user-agent': userAgent
     }
 });
 
@@ -55,11 +59,22 @@ async function getTeaFi(axios, options, address) {
     try {
         const response = await axios(options);
         console.log('Check-In Successful Points Add ', response.data.points);
+        success++;
     } catch (error) {
         console.error(`Error: \nadd: ${address}\nmessage: ${error.response.data.message}`);
+        fail++;
     }
 }
 
+
+function getResult() {
+    return `<b>Success:</b> ${success}\n<b>Fail:</b> ${fail}`
+}
+
+function emptyResult() {
+    success = 0;
+    fail = 0
+}
 
 module.exports = {
 
@@ -67,6 +82,8 @@ module.exports = {
     setCodeOptions,
     pointsOptions,
     getCodeOptions,
+    getResult,
+    emptyResult,
 
     getTeaFi,
 
