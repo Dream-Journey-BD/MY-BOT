@@ -6,7 +6,7 @@ const { waitSeconds, waitMinutes } = require("./common")
 
 let jwtValue = '';
 
-//Some Change Here
+//Some Change Here New Api Intigtret
 var jwtOptions = {
     method: 'POST',
     url: 'https://app-auth.jp.stork-oracle.network/token',
