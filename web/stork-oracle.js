@@ -9,17 +9,15 @@ let jwtValue = '';
 var jwtOptions = {
     method: 'POST',
     url: 'https://app-auth.jp.stork-oracle.network/token',
-    params: { grant_type: 'password' },
+    params: { grant_type: 'refresh_token' },
     headers: {
         accept: '*/*',
-        'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8,bn;q=0.7',
+        'accept-language': 'en-US,en;q=0.9,bn-BD;q=0.8,bn;q=0.7',
         'content-type': 'application/json',
-        origin: 'https://app.stork.network',
-        priority: 'u=1, i',
-        referer: 'https://app.stork.network/',
+        origin: 'chrome-extension://knnliglhgkmlblppdejchidfihjnockl',
         'user-agent': userAgent
     },
-    data: { email: 'imrannazirjihad@gmail.com', password: 'In3302060@' }
+    data: { refresh_token: 'QQ78ILXwtbNWLE7NV5uo5w' }
 };
 
 
