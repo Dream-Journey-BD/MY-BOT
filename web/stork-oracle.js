@@ -1,10 +1,13 @@
-
-require("dotenv").config();
+//======= Lib impl ===========
 const he = require('he');
 const { devID, userAgent } = require("../tg/developer-utils")
 const { waitSeconds, waitMinutes } = require("./common")
 
 let jwtValue = '';
+
+let createBotMessage = '';
+let messageID = '';
+
 
 //Some Change Here New Api Intigtret
 var jwtOptions = {
@@ -38,6 +41,7 @@ const callOptions = (jwt) => ({
     }
 });
 
+
 const validationOptions = (msg_hash, jwt) => ({
     method: 'POST',
     url: 'https://app-api.jp.stork-oracle.network/v1/stork_signed_prices/validations',
@@ -59,7 +63,25 @@ const validationOptions = (msg_hash, jwt) => ({
     }
 });
 
+const meOptions = (jwt) => ({
+    method: 'GET',
+    url: 'https://app-api.jp.stork-oracle.network/v1/me',
+    headers: {
+        accept: '*/*',
+        'accept-language': 'en-US,en;q=0.9,bn-BD;q=0.8,bn;q=0.7',
+        authorization: jwt,
+        origin: 'chrome-extension://knnliglhgkmlblppdejchidfihjnockl',
+        'sec-ch-ua-platform': '"Windows"',
+        'user-agent': userAgent
+    }
+});
+
+
+//====== Main Methode Here ==========
 async function callStork(bot, axios) {
+
+    createBotMessage = '';
+
     try {
 
         const response = await axios(callOptions(jwtValue));
@@ -68,13 +90,15 @@ async function callStork(bot, axios) {
         const assetKey = Object.keys(data?.data || {})[0];
         const msgHash = data?.data?.[assetKey]?.timestamped_signature?.msg_hash;
 
-        console.log(`msg_hash for ${assetKey}:`, msgHash);
+        createBotMessage += `✅ Call Stork\n👉 msg_hash for ${assetKey}: ${msgHash}\n\n`;
 
         callValidations(bot, axios, msgHash);
 
+
+
     } catch (error) {
         if (jwtValue === '' || (error.response.data.error === "invalid token")) {
-            console.log('invalid token')
+            createBotMessage += `❌ Stok Error: invalid token\n\n`;
             await waitSeconds(5, 10);
             callUpadetJWT(bot, axios)
 
@@ -82,23 +106,25 @@ async function callStork(bot, axios) {
             const errorM = error.response ? error.response.data : "From callStork..";
             const encodedE = he.encode(JSON.stringify(errorM, null, 2));
             const message = `<pre><code>${encodedE}</code></pre>`
-            bot.sendMessage(devID[0], message, { parse_mode: 'HTML' });
-            console.log("Stok Error:", message);
+            createBotMessage += "❌ Stok Error:\n" + message + "\n\n";
         }
 
     }
+
+    callMeProfile(bot, axios);
+
 }
 
 async function callValidations(bot, axios, msgHash) {
     try {
 
         const response = await axios(validationOptions(msgHash, jwtValue));
-        console.log("Message: ", response.data.message);
+        createBotMessage += `✅ Validation Message: ${response.data.message}\n\n`;
         await waitSeconds(30, 60);
         callStork(bot, axios);
 
     } catch (error) {
-        console.error('Valid Error: ', error.response.data);
+        createBotMessage += `❌ Valid Error: ${error.response.data}\n\n`;
         await waitSeconds(30, 60);
         callStork(bot, axios);
     }
@@ -106,13 +132,46 @@ async function callValidations(bot, axios, msgHash) {
 
 }
 
+// ====== Show Live Points =========
+async function callMeProfile(bot, axios) {
+
+    try {
+
+        const response = await axios(meOptions(jwtValue));
+        const validCount = response.data.data.stats.stork_signed_prices_valid_count;
+        createBotMessage += `💕 MY Points: ${validCount}\n\n`;
+
+    } catch (error) {
+        let text = '';
+        if (error?.message) {
+            text = error.message;
+        } else if (error?.response?.status && error?.response?.data?.error) {
+            text = error.response.status;
+            text = error.response.data.error;
+        } else {
+            text = "From Call Call Me Profile...";
+        }
+
+        createBotMessage += `❌ Me Error: ${text}\n\n`;
+
+    }
+
+    const currentDate = new Date();
+    const bdTime = currentDate.toLocaleString("en-US", { timeZone: "Asia/Dhaka" });
+
+    createBotMessage += `Last Update Time: ${bdTime}`;
+    console.log(createBotMessage)
+
+}
+
+//========== Token Update ========
 async function callUpadetJWT(bot, axios) {
     try {
 
         const response = await axios(jwtOptions);
         const jwtRes = response.data.access_token
         jwtValue = 'Bearer ' + jwtRes;
-        console.log('Update JWT: ', jwtValue);
+        createBotMessage += `✅ Update JWT: ${jwtValue}\n\n`;
 
         await waitSeconds(7, 15);
         callStork(bot, axios);
@@ -127,7 +186,7 @@ async function callUpadetJWT(bot, axios) {
         } else {
             text = "From Call UpdateJWT...";
         }
-        console.log("JWT Error:", text);
+        createBotMessage += `❌ JWT Error: ${text}\n\n`;
         await waitMinutes(5, 15);
         callStork(bot, axios);
     }
@@ -136,6 +195,7 @@ async function callUpadetJWT(bot, axios) {
 }
 
 module.exports = {
+
     callStork,
 
 }
