@@ -1,11 +1,12 @@
 //======= Lib impl ===========
 const he = require('he');
 const { devID, userAgent } = require("../tg/developer-utils")
-const { waitSeconds, waitMinutes } = require("./common")
+const { waitSeconds } = require("./common")
 
 let jwtValue = '';
 
 let createBotMessage = '';
+
 let messageID = '';
 
 
@@ -55,7 +56,7 @@ const validationOptions = (msg_hash, jwt) => ({
         'sec-fetch-dest': 'empty',
         'sec-fetch-mode': 'cors',
         'sec-fetch-site': 'cross-site',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36'
+        'user-agent': userAgent
     },
     data: {
         msg_hash: msg_hash,
@@ -78,9 +79,19 @@ const meOptions = (jwt) => ({
 
 
 //====== Main Methode Here ==========
-async function callStork(bot, axios) {
+async function callStorkLoop(bot, axios) {
+    while (true) {
 
-    createBotMessage = '';
+        createBotMessage = '';
+        await callStork(axios);
+        await callMeProfile(bot, axios);
+        await waitSeconds(300, 310);
+
+    }
+
+}
+
+async function callStork(axios) {
 
     try {
 
@@ -92,41 +103,62 @@ async function callStork(bot, axios) {
 
         createBotMessage += `✅ Call Stork\n👉 msg_hash for ${assetKey}: ${msgHash}\n\n`;
 
-        callValidations(bot, axios, msgHash);
+        await callValidations(axios, msgHash);
 
 
 
     } catch (error) {
         if (jwtValue === '' || (error.response.data.error === "invalid token")) {
-            createBotMessage += `❌ Stok Error: invalid token\n\n`;
-            await waitSeconds(5, 10);
-            callUpadetJWT(bot, axios)
+            createBotMessage += `❌ Main Stok Error: invalid token\n\n`;
+            await waitSeconds(5, 7);
+            await callUpadetJWT(axios)
 
         } else {
-            const errorM = error.response ? error.response.data : "From callStork..";
+            const errorM = error.response ? error.response.data : "From Call Stork..";
             const encodedE = he.encode(JSON.stringify(errorM, null, 2));
             const message = `<pre><code>${encodedE}</code></pre>`
-            createBotMessage += "❌ Stok Error:\n" + message + "\n\n";
+            createBotMessage += "❌ Main Stok Error:\n" + message + "\n\n";
         }
 
     }
 
-    callMeProfile(bot, axios);
 
 }
 
-async function callValidations(bot, axios, msgHash) {
+async function callValidations(axios, msgHash) {
+
     try {
 
         const response = await axios(validationOptions(msgHash, jwtValue));
         createBotMessage += `✅ Validation Message: ${response.data.message}\n\n`;
-        await waitSeconds(30, 60);
-        callStork(bot, axios);
 
     } catch (error) {
         createBotMessage += `❌ Valid Error: ${error.response.data}\n\n`;
-        await waitSeconds(30, 60);
-        callStork(bot, axios);
+    }
+
+}
+
+//========== Token Update ========
+async function callUpadetJWT(axios) {
+    try {
+
+        const response = await axios(jwtOptions);
+        const jwtRes = response.data.access_token
+        jwtValue = 'Bearer ' + jwtRes;
+        createBotMessage += `✅ Update JWT: ${jwtValue}\n\n`;
+
+    } catch (error) {
+        let text = '';
+        if (error?.message) {
+            text = error.message;
+        } else if (error?.response?.status && error?.response?.data?.error) {
+            text = error.response.status;
+            text = error.response.data.error;
+        } else {
+            text = "From Call UpdateJWT...";
+        }
+        createBotMessage += `❌ JWT Error: ${text}\n\n`;
+
     }
 
 
@@ -160,42 +192,38 @@ async function callMeProfile(bot, axios) {
     const bdTime = currentDate.toLocaleString("en-US", { timeZone: "Asia/Dhaka" });
 
     createBotMessage += `Last Update Time: ${bdTime}`;
-    console.log(createBotMessage)
-
+    await smartSendMessage(bot, createBotMessage);
 }
 
-//========== Token Update ========
-async function callUpadetJWT(bot, axios) {
+async function smartSendMessage(bot, message) {
     try {
 
-        const response = await axios(jwtOptions);
-        const jwtRes = response.data.access_token
-        jwtValue = 'Bearer ' + jwtRes;
-        createBotMessage += `✅ Update JWT: ${jwtValue}\n\n`;
-
-        await waitSeconds(7, 15);
-        callStork(bot, axios);
-
-    } catch (error) {
-        let text = '';
-        if (error?.message) {
-            text = error.message;
-        } else if (error?.response?.status && error?.response?.data?.error) {
-            text = error.response.status;
-            text = error.response.data.error;
-        } else {
-            text = "From Call UpdateJWT...";
+        if (messageID) {
+            await bot.editMessageText(message, {
+                chat_id: devID[0],
+                message_id: messageID,
+                parse_mode: "HTML"
+            });
+            //console.log(`🔁 Message updated`);
+            return;
         }
-        createBotMessage += `❌ JWT Error: ${text}\n\n`;
-        await waitMinutes(5, 15);
-        callStork(bot, axios);
+        throw new Error("No messageID");
+    } catch (editError) {
+        //console.log(`⚠️ Edit failed or not available: ${editError.message}`);
+
+        try {
+            const sent = await bot.sendMessage(devID[0], message, { parse_mode: "HTML" });
+
+            messageID = sent.message_id;
+            //console.log(`✅ New message ID: ${messageID}`);
+        } catch (sendError) {
+            //console.error(`❌ Failed to send message: ${sendError.message}`);
+        }
     }
-
-
 }
 
 module.exports = {
 
-    callStork,
+    callStorkLoop,
 
 }
