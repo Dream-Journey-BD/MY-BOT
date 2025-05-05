@@ -14,7 +14,6 @@ require("dotenv").config();
 const TelegramBot = require("node-telegram-bot-api");
 const axios = require("axios");
 const cheerio = require("cheerio");
-const he = require("he");
 
 const { extractUrl, getMyUrl, } = require("./common");
 const { noMonitorMessage, showMonitorList, startMonitoring } = require("./url-monitor")
@@ -54,7 +53,7 @@ function handleCommand(chatId, userMessage, msg) {
     else if (userMessage.startsWith("/visiturl")) {
 
         const url = userMessage.split(" ")[1]?.trim();
-        url && visitUrl(bot, axios, he, chatId, url, userMessage.message_id);
+        url && visitUrl(bot, axios, chatId, url, userMessage.message_id);
 
     }
     else if (userMessage.startsWith("/urlmonitor")) {

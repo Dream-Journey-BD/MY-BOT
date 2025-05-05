@@ -1,12 +1,23 @@
-// Function to visit a URL and fetch its content
-async function visitUrl(bot, axios, he, chatId, url) {
+//========= all Lib Here =========
+const he = require("he");
+
+//========== Main Here ===========
+async function visitUrl(bot, axios, chatId, url) {
+
     try {
         const startTime = Date.now();
-        const res = await axios.get(url);
+        const res = await axios.get(url, { responseType: 'arraybuffer' }); // For handele Buffer data handle
         const responseTime = Date.now() - startTime;
         const { status: statusCode, statusText: statusMessage, headers, data } = res;
 
-        let response = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+        let response = "";
+        if (typeof data === "string") {
+            response = data;
+        } else if (Buffer.isBuffer(data)) {
+            response = data.toString('utf-8');
+        } else {
+            response = JSON.stringify(data, null, 2);
+        }
 
         let message =
             `<b>📡 URL Visit Success:</b>\n` +
@@ -23,6 +34,7 @@ async function visitUrl(bot, axios, he, chatId, url) {
         }
 
         bot.sendMessage(chatId, message, { parse_mode: "HTML", disable_web_page_preview: true });
+
     } catch (error) {
 
         if (error.response) {
@@ -32,10 +44,19 @@ async function visitUrl(bot, axios, he, chatId, url) {
             errorMessage += `📜 <b>Content-Type:</b> ${headers["content-type"] || "Unknown"}\n`;
             errorMessage += `📝 <b>Error Message:</b> ${error.message}\n`;
 
-            if (data) {
-                errorMessage += data.length > 3000
-                    ? `<b>📝 Response Body:</b>\n<blockquote expandable="expandable">${he.encode(data.substring(0, 3000))}</blockquote>`
-                    : `<b>📝 Response Body:</b>\n<pre><code>${he.encode(data)}</code></pre>`;
+            let response = "";
+            if (typeof data === "string") {
+                response = data;
+            } else if (Buffer.isBuffer(data)) {
+                response = data.toString('utf-8');
+            } else {
+                response = JSON.stringify(data, null, 2);
+            }
+
+            if (response) {
+                errorMessage += response.length > 3000
+                    ? `<b>📝 Response Body:</b>\n<blockquote expandable="expandable">${he.encode(response.substring(0, 3000))}</blockquote>`
+                    : `<b>📝 Response Body:</b>\n<pre><code>${he.encode(response)}</code></pre>`;
             }
 
             bot.sendMessage(chatId, errorMessage, { parse_mode: "HTML" });
