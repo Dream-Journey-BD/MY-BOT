@@ -140,6 +140,7 @@ async function callValidations(axios, msgHash) {
 
 //========== Token Update ========
 async function callUpadetJWT(axios) {
+
     try {
 
         const response = await axios(jwtOptions);
@@ -160,7 +161,6 @@ async function callUpadetJWT(axios) {
         createBotMessage += `❌ JWT Error: ${text}\n\n`;
 
     }
-
 
 }
 
