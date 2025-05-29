@@ -22,7 +22,7 @@ var jwtOptions = {
         origin: 'chrome-extension://knnliglhgkmlblppdejchidfihjnockl',
         'user-agent': userAgent
     },
-    data: { refresh_token: 'QQ78ILXwtbNWLE7NV5uo5w' }
+    data: { refresh_token: 'Us1nxodl5GJr8Gu6FpEOnw' }
 };
 
 

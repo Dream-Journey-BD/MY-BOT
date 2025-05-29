@@ -7,6 +7,8 @@ const { waitMinutes } = require("./web/common")
 const { devID } = require("./tg/developer-utils")
 const { callStorkLoop } = require("./web/stork-oracle");
 const { bot } = require("./tg/tg-bot");
+const { connectWebSocket } = require("./web/tenneo");
+
 
 
 function readJsonFile(filePath) {
@@ -71,3 +73,4 @@ function callTeaFi() {
 callStorkLoop(bot, axios);
 //=======Start After 24 Hours========
 setInterval(callTeaFi, 86400000);
+//connectWebSocket();
