@@ -22,7 +22,7 @@ var jwtOptions = {
         origin: 'chrome-extension://knnliglhgkmlblppdejchidfihjnockl',
         'user-agent': userAgent
     },
-    data: { refresh_token: 'Us1nxodl5GJr8Gu6FpEOnw' }
+    data: { refresh_token: '7CK58mF2FwFbm2c73GTf4w' }
 };
 
 
@@ -189,7 +189,10 @@ async function callMeProfile(bot, axios) {
     }
 
     const currentDate = new Date();
-    const bdTime = currentDate.toLocaleString("en-US", { timeZone: "Asia/Dhaka" });
+    const bdTime = currentDate.toLocaleString("en-GB", {
+        timeZone: "Asia/Dhaka",
+        hour12: true
+    });
 
     createBotMessage += `Last Update Time: ${bdTime}`;
     await smartSendMessage(bot, createBotMessage);
